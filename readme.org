@@ -1,0 +1,5 @@
+* EPUB generator
+generate simple epub files with common lisp.
+
+this stuff is based on
+[[http://www.ibm.com/developerworks/xml/tutorials/x-epubtut/]]
