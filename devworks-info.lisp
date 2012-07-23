@@ -1,5 +1,6 @@
 (defpackage :epub-devworks
   (:use :cl :ol
+        :ebook-structure
         :cl-who :web-utils)
   (:export))
 
@@ -44,10 +45,10 @@
 tree."
   (char= #\/ (alast node-string)))
 
-(define-generate ((archive-node "mimetype") ebook)
+(define-generate ((archive-node "mimetype") (ebook ebook))
   "application/epub+zip")
 
-(define-generate ((archive-node "container.xml") ebook)
+(define-generate ((archive-node "container.xml") (ebook ebook))
   (format nil
           "<?xml version=\"1.0\"?>
 <container version=\"1.0\" xmlns=\"urn:oasis:names:tc:opendocument:xmlns:container\">
@@ -58,8 +59,8 @@ tree."
 </container>"
           "OEBPS/content.opf"))
 
-(define-generate ((archive-node "content.opf") ebook)
-  (let (title creator identifier language)
+(define-generate ((archive-node "content.opf") (ebook ebook))
+  (with-slots (title creator identifier language) ebook
     (format nil
             "<?xml version='1.0' encoding='utf-8'?>
 <package xmlns=\"http://www.idpf.org/2007/opf\"
@@ -91,8 +92,8 @@ media-type=\"application/xhtml+xml\"/>
             title creator identifier language
             "toc.ncx" "title.html" "content.html" "images/cover.png" "stylesheet.css" "title.html")))
 
-(define-generate ((archive-node "toc.ncx") ebook)
-  (let (title identifier)
+(define-generate ((archive-node "toc.ncx") (ebook ebook))
+  (with-slots (title identifier) ebook
     ;; TODO navpoints
     (format nil
             "<?xml version='1.0' encoding='utf-8'?>
@@ -132,22 +133,38 @@ content=\"~A\"/>
     </navPoint>
 "
                                 label "content.html" source)))
-                    '(("Contents" . ""))))))
+                    (chapter-refs ebook)))))
 
-(define-generate ((archive-node "title.html") ebook)
-  (let (title)
+(defun chapter-refs (ebook)
+  "return a list of navpoint targets for the various chapters."
+  (let ((chapter-nr 0))
+    (mapcar (lambda (c)
+              (cons (format nil "chapter-~A" (incf chapter-nr))
+                    (title c)))
+            (chapters ebook))))
+
+
+(define-generate ((archive-node "title.html") (ebook ebook))
+  (with-slots (title) ebook
     (html-doc (:title title :style "stylesheet.css")
       (:h1 (str title))
       (:div
        (:img :src "images/cover.png" :alt "Title page")))))
 
-(define-generate ((archive-node "stylesheet.css") ebook)
+(define-generate ((archive-node "stylesheet.css") (ebook ebook))
   "/* no style atm */")
 
-(define-generate ((archive-node "cover.png") ebook)
+(define-generate ((archive-node "cover.png") (ebook ebook))
   ;; TODO
   )
 
-(define-generate ((archive-node "content.html") ebook)
-  ;; TODO
-  )
+(define-generate ((archive-node "content.html") (ebook ebook))
+  (with-slots (title) ebook
+    (let ((chapter-nr 0))
+     (html-doc (:title title :style "stylesheet.css")
+       (dolist (chapter (chapters ebook))
+         (htm
+          (:a :id (fmt "chapter-~A"(incf chapter-nr)))
+          (:h1 (fmt "~A ~A" chapter-nr (title chapter)))
+          (dolist (p (paragraphs chapter))
+            (htm (:p (str (contents p)))))))))))

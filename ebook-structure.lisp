@@ -1,6 +1,15 @@
 (defpackage :ebook-structure
   (:use :cl :ol )
-  (:export))
+  (:export
+   :ebook
+   :title
+   :creator
+   :identifier
+   :chapters
+   :chapter
+   :paragraphs
+   :paragraph
+   :contents))
 
 (in-package :ebook-structure)
 
