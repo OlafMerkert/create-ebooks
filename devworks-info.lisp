@@ -167,3 +167,24 @@ content=\"~A\"/>
           (:h1 (fmt "~A ~A" chapter-nr (title chapter)))
           (dolist (p (paragraphs chapter))
             (htm (:p (str (contents p)))))))))))
+
+(defgeneric output-to-stream (output read-function))
+
+(defmethod output-to-stream ((output pathname) read-function)
+  (with-open-file (stream output
+                          :direction :input
+                          :element-type '(unsigned-byte 8))
+    (funcall read-function stream)))
+
+(defmethod output-to-stream ((output string) read-function)
+  (flexi-streams:with-input-from-sequence
+      (stream (flexi-streams:string-to-octets output :external-format :utf-8))
+    (funcall read-function stream)))
+
+
+(defun generate-epub (ebook pathname)
+  (zip:with-output-to-zipfile (zip pathname :if-exists :supersede)
+    (output-to-stream
+     (generate-file "mimetype" ebook)
+     (lambda (stream)
+       (zip:write-zipentry zip "mimetype" stream :file-write-date nil)))))
