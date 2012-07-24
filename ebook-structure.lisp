@@ -13,7 +13,8 @@
    :contents
    :edition
    :copyright
-   :define))
+   :define
+   :cover))
 
 (in-package :ebook-structure)
 
@@ -33,7 +34,10 @@
                :accessor edition)
    (copyright  :initarg :copyright
                :initform ""
-               :accessor copyright))
+               :accessor copyright)
+   (cover      :initarg :cover
+               :initform nil
+               :accessor cover))
   (:documentation "representing a single book with title, creator and
   contents."))
 

@@ -155,8 +155,7 @@ content=\"~A\"/>
   "/* no style atm */")
 
 (define-generate ((archive-node "cover.png") (ebook ebook))
-  ;; TODO
-  )
+    (cover ebook))
 
 (define-generate ((archive-node "content.html") (ebook ebook))
   (with-slots (title) ebook
