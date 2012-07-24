@@ -7,7 +7,7 @@
 (in-package :epub-devworks)
 
 (defparameter archive-tree
-  '(:root
+  '(""
     "mimetype"
     ("META-INF/"
      "container.xml")
@@ -139,8 +139,8 @@ content=\"~A\"/>
   "return a list of navpoint targets for the various chapters."
   (let ((chapter-nr 0))
     (mapcar (lambda (c)
-              (cons (format nil "chapter-~A" (incf chapter-nr))
-                    (title c)))
+              (cons (title c)
+                    (format nil "#chapter-~A" (incf chapter-nr))))
             (chapters ebook))))
 
 
@@ -184,7 +184,16 @@ content=\"~A\"/>
 
 (defun generate-epub (ebook pathname)
   (zip:with-output-to-zipfile (zip pathname :if-exists :supersede)
-    (output-to-stream
-     (generate-file "mimetype" ebook)
-     (lambda (stream)
-       (zip:write-zipentry zip "mimetype" stream :file-write-date nil)))))
+    (labels ((walk-tree (parent-path item)
+               (if (atom item)
+                   ;; add file to zip archive
+                   (output-to-stream
+                    (generate-file item ebook)
+                    (lambda (stream)
+                      (zip:write-zipentry zip
+                                          (concatenate 'string parent-path item)
+                                          stream :file-write-date nil)))
+                   ;; go into directory
+                   (let ((parent-path+ (concatenate 'string parent-path (first item))))
+                     (mapcar (lambda (x) (walk-tree parent-path+ x)) (rest item))))))
+      (walk-tree "" archive-tree))))
