@@ -3,7 +3,8 @@
                web-utils
                cl-ppcre
                zip
-               flexi-streams)
+               flexi-streams
+               uuid)
   :serial t
   :components ((:file "ebook-structure")
                (:file "devworks-info")))

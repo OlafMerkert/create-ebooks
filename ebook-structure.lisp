@@ -14,9 +14,16 @@
    :edition
    :copyright
    :define
-   :cover))
+   :cover
+   :language
+   :generate-id))
 
 (in-package :ebook-structure)
+
+(defun generate-id ()
+  "provide a unique identifier for the ebook"
+  (format nil "urn:uuid:~:(~A~)" (uuid:make-v4-uuid)))
+
 
 (defclass ebook ()
   ((title      :initarg :title
@@ -37,7 +44,10 @@
                :accessor copyright)
    (cover      :initarg :cover
                :initform nil
-               :accessor cover))
+               :accessor cover)
+   (language   :initarg :language
+               :initform "de-DE"
+               :accessor language))
   (:documentation "representing a single book with title, creator and
   contents."))
 
